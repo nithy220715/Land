@@ -3,133 +3,142 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Layout Plot Status</title>
+
+<title>Interactive Layout Map</title>
 
 <style>
+
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
     font-family:Arial, sans-serif;
 }
+
 body{
-    background:#f4f4f4;
-    padding:20px;
+    background:#f5f5f5;
+    overflow:hidden;
 }
-.container{
-    max-width:1400px;
-    margin:auto;
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.1);
-}
-h1{
-    text-align:center;
-    margin-bottom:20px;
-}
-.toolbar{
+
+.topbar{
+    height:70px;
+    background:#111;
+    color:white;
     display:flex;
+    align-items:center;
     justify-content:center;
     gap:15px;
-    margin-bottom:20px;
+    padding:10px;
     flex-wrap:wrap;
 }
+
 button{
     padding:10px 18px;
     border:none;
     border-radius:6px;
-    background:#222;
-    color:white;
     cursor:pointer;
+    font-size:15px;
 }
-button:hover{
+
+.zoom-btn{
+    background:#0d6efd;
+    color:white;
+}
+
+.reset-btn{
     background:#444;
+    color:white;
 }
+
 .legend{
     display:flex;
     align-items:center;
     gap:8px;
 }
-.color-box{
+
+.box{
     width:20px;
     height:20px;
     border-radius:4px;
-    border:1px solid #000;
 }
+
 .green{
-    background:#43d843;
+    background:#22c55e;
 }
+
 .red{
-    background:#ff4b4b;
+    background:#ef4444;
 }
-.map-container{
+
+.viewer{
+    width:100vw;
+    height:calc(100vh - 70px);
+    overflow:hidden;
     position:relative;
-    width:100%;
-    overflow:auto;
-    border:2px solid #ddd;
-    border-radius:10px;
+    cursor:grab;
+    background:#ddd;
 }
+
+.map-wrapper{
+    position:absolute;
+    transform-origin:top left;
+}
+
 .map-image{
-    width:100%;
+    width:1400px;
     display:block;
 }
+
 .plot{
     position:absolute;
     border:2px solid #000;
     cursor:pointer;
-    opacity:0.45;
-    transition:0.2s;
+    opacity:0.4;
     display:flex;
     align-items:center;
     justify-content:center;
     font-weight:bold;
-    color:#000;
-    user-select:none;
+    transition:0.2s;
 }
+
 .plot:hover{
     opacity:0.8;
-    transform:scale(1.02);
 }
+
 .plot.unsold{
-    background:rgba(0,255,0,0.45);
+    background:rgba(0,255,0,0.4);
 }
+
 .plot.sold{
-    background:rgba(255,0,0,0.5);
+    background:rgba(255,0,0,0.45);
 }
+
 .info{
-    margin-top:15px;
-    text-align:center;
-    font-size:18px;
+    color:white;
+    font-size:15px;
 }
+
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="topbar">
 
-    <h1>Layout Plot Status</h1>
+    <button class="zoom-btn" onclick="zoomIn()">+</button>
 
-    <div class="toolbar">
+    <button class="zoom-btn" onclick="zoomOut()">-</button>
 
-        <div class="legend">
-            <div class="color-box green"></div>
-            <span>Unsold</span>
-        </div>
+    <button class="reset-btn" onclick="resetView()">Reset</button>
 
-        <div class="legend">
-            <div class="color-box red"></div>
-            <span>Sold</span>
-        </div>
-
-        <button onclick="markAllUnsold()">All Unsold</button>
-        <button onclick="markAllSold()">All Sold</button>
-
+    <div class="legend">
+        <div class="box green"></div>
+        <span>Unsold</span>
     </div>
 
-    <div class="map-container" id="mapContainer">
-        <img src="layout-map.jpg" class="map-image"/>
+    <div class="legend">
+        <div class="box red"></div>
+        <span>Sold</span>
     </div>
 
     <div class="info">
@@ -139,36 +148,72 @@ button:hover{
 
 </div>
 
+<div class="viewer" id="viewer">
+
+    <div class="map-wrapper" id="mapWrapper">
+
+        <!-- ORIGINAL MAP -->
+        <img src="layout-map.jpg" class="map-image"/>
+
+    </div>
+
+</div>
+
 <script>
 
+/*
+PLOT POSITIONS
+Adjust for exact alignment
+*/
+
 const plots = [
-{ no:1, x:55, y:105, w:90, h:150 },
-{ no:2, x:145, y:105, w:90, h:150 },
-{ no:3, x:235, y:105, w:90, h:150 },
-{ no:4, x:325, y:105, w:90, h:150 },
-{ no:5, x:450, y:105, w:90, h:150 },
-{ no:6, x:540, y:105, w:90, h:150 },
-{ no:7, x:630, y:105, w:90, h:150 },
-{ no:8, x:720, y:105, w:90, h:150 },
-{ no:9, x:55, y:260, w:90, h:130 },
-{ no:10, x:145, y:260, w:90, h:130 },
-{ no:11, x:235, y:260, w:90, h:130 },
-{ no:12, x:325, y:260, w:90, h:130 },
-{ no:13, x:55, y:410, w:90, h:130 },
-{ no:14, x:145, y:410, w:90, h:130 },
-{ no:15, x:235, y:410, w:90, h:130 },
-{ no:16, x:325, y:410, w:90, h:130 },
-{ no:17, x:450, y:260, w:90, h:130 },
-{ no:18, x:540, y:260, w:90, h:130 },
-{ no:19, x:630, y:260, w:90, h:130 },
-{ no:20, x:720, y:260, w:90, h:130 },
-{ no:21, x:450, y:410, w:90, h:130 },
-{ no:22, x:540, y:410, w:90, h:130 },
-{ no:23, x:630, y:410, w:90, h:130 },
-{ no:24, x:720, y:410, w:90, h:130 }
+
+{ no:1, x:70, y:140, w:100, h:170 },
+{ no:2, x:170, y:140, w:100, h:170 },
+{ no:3, x:270, y:140, w:100, h:170 },
+{ no:4, x:370, y:140, w:110, h:170 },
+
+{ no:5, x:700, y:140, w:100, h:170 },
+{ no:6, x:600, y:140, w:100, h:170 },
+{ no:7, x:500, y:140, w:100, h:170 },
+{ no:8, x:400, y:140, w:100, h:170 },
+
+{ no:9, x:70, y:320, w:100, h:120 },
+{ no:10, x:70, y:450, w:100, h:120 },
+{ no:11, x:70, y:570, w:100, h:120 },
+{ no:12, x:70, y:690, w:100, h:120 },
+
+{ no:13, x:70, y:810, w:100, h:120 },
+
+{ no:14, x:350, y:810, w:140, h:120 },
+{ no:15, x:350, y:690, w:140, h:120 },
+{ no:16, x:350, y:570, w:140, h:120 },
+{ no:17, x:350, y:450, w:140, h:120 },
+
+{ no:18, x:500, y:450, w:140, h:120 },
+{ no:19, x:500, y:570, w:140, h:120 },
+{ no:20, x:500, y:690, w:140, h:150 },
+
+{ no:21, x:700, y:580, w:140, h:170 },
+{ no:22, x:700, y:450, w:140, h:120 },
+
+{ no:23, x:850, y:450, w:120, h:170 },
+{ no:24, x:970, y:450, w:120, h:170 },
+
+{ no:25, x:1080, y:300, w:120, h:140 },
+{ no:26, x:960, y:300, w:120, h:140 },
+{ no:27, x:840, y:300, w:120, h:140 },
+{ no:28, x:720, y:300, w:120, h:140 },
+{ no:29, x:600, y:300, w:120, h:140 },
+
+{ no:30, x:720, y:140, w:120, h:140 },
+{ no:31, x:840, y:140, w:120, h:140 },
+{ no:32, x:960, y:140, w:120, h:140 },
+{ no:33, x:1080, y:140, w:120, h:140 }
+
 ];
 
-const container = document.getElementById("mapContainer");
+const wrapper = document.getElementById("mapWrapper");
 
 plots.forEach(plot => {
 
@@ -185,9 +230,12 @@ plots.forEach(plot => {
 
     div.dataset.status = "unsold";
 
-    div.onclick = () => togglePlot(div);
+    div.onclick = (e)=>{
+        e.stopPropagation();
+        togglePlot(div);
+    };
 
-    container.appendChild(div);
+    wrapper.appendChild(div);
 
 });
 
@@ -209,10 +257,10 @@ function togglePlot(plot){
 
     }
 
-    updateCount();
+    updateCounts();
 }
 
-function updateCount(){
+function updateCounts(){
 
     const sold = document.querySelectorAll(".plot.sold").length;
     const unsold = document.querySelectorAll(".plot.unsold").length;
@@ -221,35 +269,98 @@ function updateCount(){
     document.getElementById("unsoldCount").innerText = unsold;
 }
 
-function markAllSold(){
+updateCounts();
 
-    document.querySelectorAll(".plot").forEach(plot => {
+/* ZOOM */
 
-        plot.dataset.status = "sold";
+let scale = 1;
+let posX = 0;
+let posY = 0;
 
-        plot.classList.remove("unsold");
-        plot.classList.add("sold");
-
-    });
-
-    updateCount();
+function applyTransform(){
+    wrapper.style.transform =
+        `translate(${posX}px, ${posY}px) scale(${scale})`;
 }
 
-function markAllUnsold(){
-
-    document.querySelectorAll(".plot").forEach(plot => {
-
-        plot.dataset.status = "unsold";
-
-        plot.classList.remove("sold");
-        plot.classList.add("unsold");
-
-    });
-
-    updateCount();
+function zoomIn(){
+    scale += 0.1;
+    applyTransform();
 }
 
-updateCount();
+function zoomOut(){
+    scale -= 0.1;
+
+    if(scale < 0.5) scale = 0.5;
+
+    applyTransform();
+}
+
+function resetView(){
+    scale = 1;
+    posX = 0;
+    posY = 0;
+    applyTransform();
+}
+
+/* DRAG */
+
+const viewer = document.getElementById("viewer");
+
+let isDragging = false;
+let startX, startY;
+
+viewer.addEventListener("mousedown", (e)=>{
+
+    isDragging = true;
+
+    startX = e.clientX - posX;
+    startY = e.clientY - posY;
+
+    viewer.style.cursor = "grabbing";
+});
+
+viewer.addEventListener("mouseup", ()=>{
+
+    isDragging = false;
+
+    viewer.style.cursor = "grab";
+});
+
+viewer.addEventListener("mouseleave", ()=>{
+
+    isDragging = false;
+});
+
+viewer.addEventListener("mousemove", (e)=>{
+
+    if(!isDragging) return;
+
+    posX = e.clientX - startX;
+    posY = e.clientY - startY;
+
+    applyTransform();
+});
+
+/* MOUSE WHEEL ZOOM */
+
+viewer.addEventListener("wheel", (e)=>{
+
+    e.preventDefault();
+
+    if(e.deltaY < 0){
+
+        scale += 0.1;
+
+    }else{
+
+        scale -= 0.1;
+
+        if(scale < 0.5) scale = 0.5;
+    }
+
+    applyTransform();
+
+});
 
 </script>
 
