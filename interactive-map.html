@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Land Plot Map - Interactive Layout</title>
+    <title>Senthilvel Nagar - Interactive Land Map</title>
     <style>
         * {
             margin: 0;
@@ -19,26 +19,31 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2em;
+            margin-bottom: 5px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
         }
 
         .controls {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             margin-bottom: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             display: flex;
@@ -55,7 +60,7 @@
         }
 
         button {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -98,14 +103,14 @@
 
         .zoom-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .zoom-btn {
             background: #667eea;
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             padding: 0;
             display: flex;
             align-items: center;
@@ -133,55 +138,102 @@
             border-radius: 3px;
         }
 
-        .map-container {
+        .map-wrapper {
             background: white;
             border-radius: 12px;
-            overflow: hidden;
+            overflow: auto;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             position: relative;
+            height: 700px;
         }
 
-        svg {
-            display: block;
-            width: 100%;
-            height: auto;
-            background: linear-gradient(to bottom, #f8f9ff, #ffffff);
+        #mapContainer {
+            position: relative;
+            width: 1400px;
+            height: 900px;
+            background: linear-gradient(to bottom, #f8f9ff, #fffef5);
+            transform-origin: top left;
+            border: 2px solid #ddd;
         }
 
+        /* Roads */
+        .road {
+            position: absolute;
+            background: linear-gradient(135deg, #d7d7d7 0%, #e8e8e8 100%);
+            border: 1px solid #999;
+            opacity: 0.8;
+        }
+
+        /* Plot Styles */
         .plot {
+            position: absolute;
+            border: 2px solid #333;
             cursor: pointer;
             transition: all 0.2s ease;
-            stroke-width: 2;
-            stroke: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .plot:hover {
-            filter: brightness(0.95);
-            stroke-width: 3;
+            transform: scale(1.05);
+            z-index: 100;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
         }
 
         .plot.sold {
-            fill: #ff6b6b;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
         }
 
         .plot.unsold {
-            fill: #51cf66;
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+            color: white;
         }
 
         .plot.hidden {
-            opacity: 0.2;
+            opacity: 0.1;
             pointer-events: none;
         }
 
-        .plot-label {
-            font-size: 12px;
+        .plot-number {
+            font-size: 18px;
             font-weight: 700;
-            text-anchor: middle;
-            pointer-events: none;
-            fill: white;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
 
+        .plot-area {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        /* Compass */
+        .compass {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 18px;
+        }
+
+        .compass-n { position: absolute; top: 8px; color: #ff6b6b; }
+        .compass-s { position: absolute; bottom: 8px; color: #51cf66; }
+        .compass-e { position: absolute; right: 8px; }
+        .compass-w { position: absolute; left: 8px; }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -201,12 +253,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
@@ -235,6 +283,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
         }
 
         .modal-header h2 {
@@ -251,31 +301,29 @@
             padding: 0;
             width: 30px;
             height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .close-btn:hover {
             color: #333;
         }
 
-        .modal-details {
+        .modal-body {
             display: grid;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
         .detail-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            padding: 10px;
+            background: #f8f9ff;
+            border-radius: 6px;
         }
 
         .detail-label {
             font-weight: 600;
-            color: #666;
+            color: #667eea;
         }
 
         .detail-value {
@@ -337,15 +385,14 @@
         .legend {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             margin-top: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .legend h3 {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             color: #333;
-            font-size: 1.1em;
         }
 
         .legend-items {
@@ -375,43 +422,42 @@
             background: #51cf66;
         }
 
+        .project-info {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .project-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 1.8em;
+                font-size: 1.5em;
             }
-
             .controls {
                 flex-direction: column;
                 align-items: flex-start;
             }
-
-            .stats {
+            .map-wrapper {
+                height: 500px;
+            }
+            #mapContainer {
                 width: 100%;
             }
-
-            .modal-content {
-                padding: 20px;
-            }
-        }
-
-        .location-info {
-            background: #f8f9ff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-        }
-
-        .location-info strong {
-            color: #667eea;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🗺️ Land Plot Map</h1>
-            <p>Interactive Layout - Click on plots to view details</p>
+            <h1>🏘️ Senthilvel Nagar</h1>
+            <p>Existing Sathy - Athani Road | Interactive Land Plot Map</p>
         </div>
 
         <div class="controls">
@@ -435,180 +481,20 @@
             <div class="zoom-controls">
                 <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
                 <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
-                <button class="zoom-btn" onclick="resetZoom()" title="Reset View">⊟</button>
+                <button class="zoom-btn" onclick="resetZoom()" title="Reset">⊟</button>
             </div>
         </div>
 
-        <div class="map-container" id="mapContainer">
-            <svg id="mapSVG" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet">
-                <!-- Grid/Road background -->
-                <defs>
-                    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
-                        <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>
-                    </pattern>
-                    <filter id="shadow">
-                        <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
-                    </filter>
-                </defs>
-                
-                <rect width="1000" height="800" fill="url(#grid)"/>
-                
-                <!-- Main Roads -->
-                <rect x="0" y="380" width="1000" height="40" fill="#999" opacity="0.3"/>
-                <rect x="480" y="0" width="40" height="800" fill="#999" opacity="0.3"/>
-
-                <!-- Plot Groups (modify according to your actual layout) -->
-                <!-- Row 1 -->
-                <g class="plot-group" data-row="1">
-                    <rect class="plot unsold" data-id="A1" x="50" y="50" width="80" height="80" onclick="showPlotDetails('A1')"/>
-                    <text class="plot-label" x="90" y="100">A1</text>
-                </g>
-                
-                <g class="plot-group" data-row="1">
-                    <rect class="plot unsold" data-id="A2" x="150" y="50" width="80" height="80" onclick="showPlotDetails('A2')"/>
-                    <text class="plot-label" x="190" y="100">A2</text>
-                </g>
-
-                <g class="plot-group" data-row="1">
-                    <rect class="plot sold" data-id="A3" x="250" y="50" width="80" height="80" onclick="showPlotDetails('A3')"/>
-                    <text class="plot-label" x="290" y="100">A3</text>
-                </g>
-
-                <g class="plot-group" data-row="1">
-                    <rect class="plot sold" data-id="A4" x="350" y="50" width="80" height="80" onclick="showPlotDetails('A4')"/>
-                    <text class="plot-label" x="390" y="100">A4</text>
-                </g>
-
-                <!-- Row 2 -->
-                <g class="plot-group" data-row="2">
-                    <rect class="plot unsold" data-id="B1" x="50" y="150" width="80" height="80" onclick="showPlotDetails('B1')"/>
-                    <text class="plot-label" x="90" y="200">B1</text>
-                </g>
-
-                <g class="plot-group" data-row="2">
-                    <rect class="plot sold" data-id="B2" x="150" y="150" width="80" height="80" onclick="showPlotDetails('B2')"/>
-                    <text class="plot-label" x="190" y="200">B2</text>
-                </g>
-
-                <g class="plot-group" data-row="2">
-                    <rect class="plot unsold" data-id="B3" x="250" y="150" width="80" height="80" onclick="showPlotDetails('B3')"/>
-                    <text class="plot-label" x="290" y="200">B3</text>
-                </g>
-
-                <g class="plot-group" data-row="2">
-                    <rect class="plot sold" data-id="B4" x="350" y="150" width="80" height="80" onclick="showPlotDetails('B4')"/>
-                    <text class="plot-label" x="390" y="200">B4</text>
-                </g>
-
-                <!-- Row 3 -->
-                <g class="plot-group" data-row="3">
-                    <rect class="plot unsold" data-id="C1" x="50" y="250" width="80" height="80" onclick="showPlotDetails('C1')"/>
-                    <text class="plot-label" x="90" y="300">C1</text>
-                </g>
-
-                <g class="plot-group" data-row="3">
-                    <rect class="plot unsold" data-id="C2" x="150" y="250" width="80" height="80" onclick="showPlotDetails('C2')"/>
-                    <text class="plot-label" x="190" y="300">C2</text>
-                </g>
-
-                <g class="plot-group" data-row="3">
-                    <rect class="plot sold" data-id="C3" x="250" y="250" width="80" height="80" onclick="showPlotDetails('C3')"/>
-                    <text class="plot-label" x="290" y="300">C3</text>
-                </g>
-
-                <g class="plot-group" data-row="3">
-                    <rect class="plot sold" data-id="C4" x="350" y="250" width="80" height="80" onclick="showPlotDetails('C4')"/>
-                    <text class="plot-label" x="390" y="300">C4</text>
-                </g>
-
-                <!-- Right side plots -->
-                <g class="plot-group" data-row="1">
-                    <rect class="plot sold" data-id="D1" x="550" y="50" width="80" height="80" onclick="showPlotDetails('D1')"/>
-                    <text class="plot-label" x="590" y="100">D1</text>
-                </g>
-
-                <g class="plot-group" data-row="1">
-                    <rect class="plot unsold" data-id="D2" x="650" y="50" width="80" height="80" onclick="showPlotDetails('D2')"/>
-                    <text class="plot-label" x="690" y="100">D2</text>
-                </g>
-
-                <g class="plot-group" data-row="1">
-                    <rect class="plot unsold" data-id="D3" x="750" y="50" width="80" height="80" onclick="showPlotDetails('D3')"/>
-                    <text class="plot-label" x="790" y="100">D3</text>
-                </g>
-
-                <g class="plot-group" data-row="1">
-                    <rect class="plot sold" data-id="D4" x="850" y="50" width="80" height="80" onclick="showPlotDetails('D4')"/>
-                    <text class="plot-label" x="890" y="100">D4</text>
-                </g>
-
-                <!-- Row 2 Right -->
-                <g class="plot-group" data-row="2">
-                    <rect class="plot unsold" data-id="E1" x="550" y="150" width="80" height="80" onclick="showPlotDetails('E1')"/>
-                    <text class="plot-label" x="590" y="200">E1</text>
-                </g>
-
-                <g class="plot-group" data-row="2">
-                    <rect class="plot sold" data-id="E2" x="650" y="150" width="80" height="80" onclick="showPlotDetails('E2')"/>
-                    <text class="plot-label" x="690" y="200">E2</text>
-                </g>
-
-                <g class="plot-group" data-row="2">
-                    <rect class="plot unsold" data-id="E3" x="750" y="150" width="80" height="80" onclick="showPlotDetails('E3')"/>
-                    <text class="plot-label" x="790" y="200">E3</text>
-                </g>
-
-                <g class="plot-group" data-row="2">
-                    <rect class="plot sold" data-id="E4" x="850" y="150" width="80" height="80" onclick="showPlotDetails('E4')"/>
-                    <text class="plot-label" x="890" y="200">E4</text>
-                </g>
-
-                <!-- Row 3 Right -->
-                <g class="plot-group" data-row="3">
-                    <rect class="plot sold" data-id="F1" x="550" y="250" width="80" height="80" onclick="showPlotDetails('F1')"/>
-                    <text class="plot-label" x="590" y="300">F1</text>
-                </g>
-
-                <g class="plot-group" data-row="3">
-                    <rect class="plot unsold" data-id="F2" x="650" y="250" width="80" height="80" onclick="showPlotDetails('F2')"/>
-                    <text class="plot-label" x="690" y="300">F2</text>
-                </g>
-
-                <g class="plot-group" data-row="3">
-                    <rect class="plot unsold" data-id="F3" x="750" y="250" width="80" height="80" onclick="showPlotDetails('F3')"/>
-                    <text class="plot-label" x="790" y="300">F3</text>
-                </g>
-
-                <g class="plot-group" data-row="3">
-                    <rect class="plot sold" data-id="F4" x="850" y="250" width="80" height="80" onclick="showPlotDetails('F4')"/>
-                    <text class="plot-label" x="890" y="300">F4</text>
-                </g>
-
-                <!-- Bottom section plots -->
-                <g class="plot-group" data-row="4">
-                    <rect class="plot unsold" data-id="G1" x="50" y="450" width="80" height="80" onclick="showPlotDetails('G1')"/>
-                    <text class="plot-label" x="90" y="500">G1</text>
-                </g>
-
-                <g class="plot-group" data-row="4">
-                    <rect class="plot unsold" data-id="G2" x="150" y="450" width="80" height="80" onclick="showPlotDetails('G2')"/>
-                    <text class="plot-label" x="190" y="500">G2</text>
-                </g>
-
-                <g class="plot-group" data-row="4">
-                    <rect class="plot sold" data-id="G3" x="250" y="450" width="80" height="80" onclick="showPlotDetails('G3')"/>
-                    <text class="plot-label" x="290" y="500">G3</text>
-                </g>
-
-                <g class="plot-group" data-row="4">
-                    <rect class="plot sold" data-id="G4" x="350" y="450" width="80" height="80" onclick="showPlotDetails('G4')"/>
-                    <text class="plot-label" x="390" y="500">G4</text>
-                </g>
-
-                <!-- Entrance marker -->
-                <circle cx="100" cy="700" r="20" fill="#667eea" opacity="0.5"/>
-                <text x="100" y="705" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MAIN ENTRANCE</text>
-            </svg>
+        <div class="map-wrapper">
+            <div id="mapContainer">
+                <!-- Compass Rose -->
+                <div class="compass">
+                    <div class="compass-n">N</div>
+                    <div class="compass-s">S</div>
+                    <div class="compass-e">E</div>
+                    <div class="compass-w">W</div>
+                </div>
+            </div>
         </div>
 
         <div class="legend">
@@ -624,36 +510,39 @@
                 </div>
             </div>
         </div>
+
+        <div class="project-info">
+            <p><strong>📍 Project Name:</strong> Senthilvel Nagar</p>
+            <p><strong>📍 Location:</strong> Sathy - Athani Road, Bangalore</p>
+            <p><strong>📊 Total Plots:</strong> 33</p>
+            <p><strong>☎️ Contact:</strong> 98652 94653 | 98429 24423</p>
+        </div>
     </div>
 
     <!-- Modal for plot details -->
     <div class="modal" id="plotModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Plot A1</h2>
+                <h2 id="modalTitle">Plot 1</h2>
                 <button class="close-btn" onclick="closePlotModal()">×</button>
             </div>
 
-            <div class="location-info">
-                <strong>📍 Location:</strong> <span id="modalLocation">North Block - Row 1</span>
-            </div>
-
-            <div class="modal-details">
+            <div class="modal-body">
                 <div class="detail-row">
-                    <span class="detail-label">Plot ID</span>
-                    <span class="detail-value" id="modalId">A1</span>
+                    <span class="detail-label">Plot Number</span>
+                    <span class="detail-value" id="modalPlotNo">1</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Area</span>
-                    <span class="detail-value" id="modalArea">500 Sq. Ft.</span>
+                    <span class="detail-label">Area (Sq.ft)</span>
+                    <span class="detail-value" id="modalArea">2742.47</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Price</span>
-                    <span class="detail-value" id="modalPrice">$50,000</span>
+                    <span class="detail-label">Cent</span>
+                    <span class="detail-value" id="modalCent">6.29</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Status</span>
-                    <span class="status-badge unsold" id="modalStatus">Available</span>
+                    <span class="status-badge unsold" id="modalStatus">AVAILABLE</span>
                 </div>
             </div>
 
@@ -667,40 +556,121 @@
     <script>
         let currentFilter = 'all';
         let currentZoom = 1;
+
+        // Plot data from the actual map image
         const plotData = {
-            'A1': { location: 'North Block - Row 1', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
-            'A2': { location: 'North Block - Row 1', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
-            'A3': { location: 'North Block - Row 1', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
-            'A4': { location: 'North Block - Row 1', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
-            'B1': { location: 'North Block - Row 2', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
-            'B2': { location: 'North Block - Row 2', area: '500 Sq. Ft.', price: '$52,000', status: 'sold' },
-            'B3': { location: 'North Block - Row 2', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
-            'B4': { location: 'North Block - Row 2', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
-            'C1': { location: 'North Block - Row 3', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
-            'C2': { location: 'North Block - Row 3', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
-            'C3': { location: 'North Block - Row 3', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
-            'C4': { location: 'North Block - Row 3', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
-            'D1': { location: 'South Block - Row 1', area: '550 Sq. Ft.', price: '$56,000', status: 'sold' },
-            'D2': { location: 'South Block - Row 1', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
-            'D3': { location: 'South Block - Row 1', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
-            'D4': { location: 'South Block - Row 1', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
-            'E1': { location: 'South Block - Row 2', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
-            'E2': { location: 'South Block - Row 2', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
-            'E3': { location: 'South Block - Row 2', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
-            'E4': { location: 'South Block - Row 2', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
-            'F1': { location: 'South Block - Row 3', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
-            'F2': { location: 'South Block - Row 3', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
-            'F3': { location: 'South Block - Row 3', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
-            'F4': { location: 'South Block - Row 3', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
-            'G1': { location: 'Premium Block - Row 1', area: '600 Sq. Ft.', price: '$65,000', status: 'unsold' },
-            'G2': { location: 'Premium Block - Row 1', area: '600 Sq. Ft.', price: '$65,000', status: 'unsold' },
-            'G3': { location: 'Premium Block - Row 1', area: '600 Sq. Ft.', price: '$68,000', status: 'sold' },
-            'G4': { location: 'Premium Block - Row 1', area: '600 Sq. Ft.', price: '$68,000', status: 'sold' }
+            1: { area: 2742.47, cent: 6.29, status: 'unsold' },
+            2: { area: 3108, cent: 7.13, status: 'unsold' },
+            3: { area: 3108, cent: 7.13, status: 'unsold' },
+            4: { area: 3317.5, cent: 7.61, status: 'unsold' },
+            5: { area: 1947.5, cent: 4.47, status: 'unsold' },
+            6: { area: 1792, cent: 4.11, status: 'unsold' },
+            7: { area: 1792, cent: 4.11, status: 'unsold' },
+            8: { area: 1960, cent: 4.5, status: 'unsold' },
+            9: { area: 2373, cent: 5.44, status: 'sold' },
+            10: { area: 2073.37, cent: 4.75, status: 'unsold' },
+            11: { area: 2073.37, cent: 4.66, status: 'unsold' },
+            12: { area: 2073.37, cent: 4.79, status: 'sold' },
+            13: { area: 2073.37, cent: 4.82, status: 'unsold' },
+            14: { area: 2073.37, cent: 3.39, status: 'unsold' },
+            15: { area: 2073.37, cent: 3.4, status: 'sold' },
+            16: { area: 2073.37, cent: 3.61, status: 'unsold' },
+            17: { area: 2073.37, cent: 4.1, status: 'unsold' },
+            18: { area: 1873.37, cent: 5.82, status: 'sold' },
+            19: { area: 2073.37, cent: 4.42, status: 'unsold' },
+            20: { area: 1873.37, cent: 6.09, status: 'unsold' },
+            21: { area: 2073.37, cent: 4.54, status: 'sold' },
+            22: { area: 2073.37, cent: 3.39, status: 'unsold' },
+            23: { area: 2073.37, cent: 4.33, status: 'unsold' },
+            24: { area: 2073.37, cent: 3.3, status: 'unsold' },
+            25: { area: 2073.37, cent: 4.33, status: 'sold' },
+            26: { area: 2073.37, cent: 4.49, status: 'unsold' },
+            27: { area: 2073.37, cent: 4.49, status: 'unsold' },
+            28: { area: 2073.37, cent: 4.49, status: 'sold' },
+            29: { area: 2073.37, cent: 4.47, status: 'unsold' },
+            30: { area: 2073.37, cent: 7.1, status: 'unsold' },
+            31: { area: 2073.37, cent: 7.13, status: 'unsold' },
+            32: { area: 2073.37, cent: 7.13, status: 'sold' },
+            33: { area: 2073.37, cent: 7.49, status: 'unsold' }
         };
 
+        // Plot positions - recreated from the map image
+        const plotPositions = {
+            // Top Left Section (Plots 1-4)
+            1: { x: 60, y: 50, w: 100, h: 120 },
+            2: { x: 170, y: 50, w: 100, h: 120 },
+            3: { x: 280, y: 50, w: 100, h: 120 },
+            4: { x: 390, y: 50, w: 100, h: 120 },
+
+            // Middle Left Section (Plots 5-9)
+            5: { x: 390, y: 190, w: 100, h: 100 },
+            6: { x: 280, y: 190, w: 100, h: 100 },
+            7: { x: 170, y: 190, w: 100, h: 100 },
+            8: { x: 60, y: 190, w: 100, h: 100 },
+            9: { x: 60, y: 310, w: 100, h: 100 },
+
+            // Left Bottom Section (Plots 10-13)
+            10: { x: 60, y: 430, w: 100, h: 110 },
+            11: { x: 60, y: 560, w: 100, h: 110 },
+            12: { x: 60, y: 690, w: 100, h: 110 },
+            13: { x: 60, y: 820, w: 100, h: 80 },
+
+            // Left Bottom Middle (Plots 14-20)
+            14: { x: 170, y: 820, w: 100, h: 80 },
+            15: { x: 170, y: 690, w: 100, h: 110 },
+            16: { x: 170, y: 560, w: 100, h: 110 },
+            17: { x: 170, y: 430, w: 100, h: 110 },
+            18: { x: 280, y: 430, w: 100, h: 110 },
+            19: { x: 280, y: 560, w: 100, h: 110 },
+            20: { x: 280, y: 690, w: 100, h: 120 },
+
+            // Right Section (Plots 30-33)
+            30: { x: 650, y: 50, w: 100, h: 120 },
+            31: { x: 760, y: 50, w: 100, h: 120 },
+            32: { x: 870, y: 50, w: 100, h: 120 },
+            33: { x: 980, y: 50, w: 100, h: 120 },
+
+            // Right Middle (Plots 25-29)
+            25: { x: 980, y: 190, w: 100, h: 100 },
+            26: { x: 870, y: 190, w: 100, h: 100 },
+            27: { x: 760, y: 190, w: 100, h: 100 },
+            28: { x: 650, y: 190, w: 100, h: 100 },
+            29: { x: 540, y: 190, w: 100, h: 100 },
+
+            // Right Bottom (Plots 21-24)
+            21: { x: 650, y: 430, w: 100, h: 130 },
+            22: { x: 650, y: 580, w: 100, h: 130 },
+            23: { x: 760, y: 430, w: 100, h: 100 },
+            24: { x: 870, y: 430, w: 100, h: 100 }
+        };
+
+        // Initialize plots
+        function initPlots() {
+            const mapContainer = document.getElementById('mapContainer');
+            
+            Object.keys(plotPositions).forEach(plotId => {
+                const pos = plotPositions[plotId];
+                const data = plotData[plotId];
+
+                const plotEl = document.createElement('div');
+                plotEl.className = `plot ${data.status}`;
+                plotEl.dataset.plotId = plotId;
+                plotEl.style.left = pos.x + 'px';
+                plotEl.style.top = pos.y + 'px';
+                plotEl.style.width = pos.w + 'px';
+                plotEl.style.height = pos.h + 'px';
+                plotEl.innerHTML = `<div class="plot-number">${plotId}</div><div class="plot-area">${data.area} sq.ft</div>`;
+                plotEl.onclick = () => showPlotDetails(plotId);
+
+                mapContainer.appendChild(plotEl);
+            });
+
+            updateStats();
+        }
+
         function updateStats() {
-            const sold = Object.keys(plotData).filter(id => plotData[id].status === 'sold').length;
-            const unsold = Object.keys(plotData).filter(id => plotData[id].status === 'unsold').length;
+            const sold = Object.values(plotData).filter(p => p.status === 'sold').length;
+            const unsold = Object.values(plotData).filter(p => p.status === 'unsold').length;
             document.getElementById('sold-count').textContent = sold;
             document.getElementById('unsold-count').textContent = unsold;
         }
@@ -716,7 +686,7 @@
             plots.forEach(plot => {
                 plot.classList.remove('hidden');
                 if (filter !== 'all') {
-                    if (plot.classList.contains(filter) === false) {
+                    if (!plot.classList.contains(filter)) {
                         plot.classList.add('hidden');
                     }
                 }
@@ -728,10 +698,9 @@
             if (!data) return;
 
             document.getElementById('modalTitle').textContent = `Plot ${plotId}`;
-            document.getElementById('modalId').textContent = plotId;
-            document.getElementById('modalLocation').textContent = data.location;
+            document.getElementById('modalPlotNo').textContent = plotId;
             document.getElementById('modalArea').textContent = data.area;
-            document.getElementById('modalPrice').textContent = data.price;
+            document.getElementById('modalCent').textContent = data.cent;
 
             const statusBadge = document.getElementById('modalStatus');
             statusBadge.textContent = data.status === 'sold' ? 'SOLD' : 'AVAILABLE';
@@ -745,48 +714,49 @@
         }
 
         function contactAgent() {
-            const plotId = document.getElementById('modalId').textContent;
-            alert(`Contacting agent for Plot ${plotId}...\n\nEmail: agent@landcompany.com\nPhone: +1-800-LAND-123`);
+            const plotId = document.getElementById('modalPlotNo').textContent;
+            alert(`Contact agent for Plot ${plotId}\n\n📞 98652 94653\n📞 98429 24423`);
         }
 
         function zoomIn() {
             currentZoom += 0.1;
-            const svg = document.getElementById('mapSVG');
-            svg.style.transform = `scale(${currentZoom})`;
-            svg.style.transformOrigin = 'center top';
+            applyZoom();
         }
 
         function zoomOut() {
             if (currentZoom > 0.5) {
                 currentZoom -= 0.1;
-                const svg = document.getElementById('mapSVG');
-                svg.style.transform = `scale(${currentZoom})`;
-                svg.style.transformOrigin = 'center top';
+                applyZoom();
             }
         }
 
         function resetZoom() {
             currentZoom = 1;
-            document.getElementById('mapSVG').style.transform = 'scale(1)';
+            applyZoom();
         }
 
-        // Close modal when clicking outside
+        function applyZoom() {
+            const container = document.getElementById('mapContainer');
+            container.style.transform = `scale(${currentZoom})`;
+        }
+
+        // Close modal on outside click
         document.getElementById('plotModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closePlotModal();
             }
         });
 
-        // Initialize stats
-        updateStats();
-
-        // Add keyboard shortcuts
+        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.key === '+') zoomIn();
             if (e.key === '-') zoomOut();
             if (e.key === '0') resetZoom();
             if (e.key === 'Escape') closePlotModal();
         });
+
+        // Initialize on load
+        window.addEventListener('load', initPlots);
     </script>
 </body>
 </html>
