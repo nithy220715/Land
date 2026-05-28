@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Plot Map - Interactive Layout</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        button.active {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-all {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-all:hover {
+            background: #5568d3;
+        }
+
+        .btn-sold {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-sold:hover {
+            background: #ee5a52;
+        }
+
+        .btn-unsold {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-unsold:hover {
+            background: #40c057;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .zoom-btn {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stat-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: linear-gradient(to bottom, #f8f9ff, #ffffff);
+        }
+
+        .plot {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            stroke-width: 2;
+            stroke: #333;
+        }
+
+        .plot:hover {
+            filter: brightness(0.95);
+            stroke-width: 3;
+        }
+
+        .plot.sold {
+            fill: #ff6b6b;
+        }
+
+        .plot.unsold {
+            fill: #51cf66;
+        }
+
+        .plot.hidden {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .plot-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-anchor: middle;
+            pointer-events: none;
+            fill: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .modal-details {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .status-badge.sold {
+            background: #ff6b6b;
+        }
+
+        .status-badge.unsold {
+            background: #51cf66;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #5568d3;
+        }
+
+        .action-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .action-btn.secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .legend {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .legend-items {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 3px;
+            border: 2px solid #333;
+        }
+
+        .legend-color.sold {
+            background: #ff6b6b;
+        }
+
+        .legend-color.unsold {
+            background: #51cf66;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats {
+                width: 100%;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        .location-info {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .location-info strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Land Plot Map</h1>
+            <p>Interactive Layout - Click on plots to view details</p>
+        </div>
+
+        <div class="controls">
+            <div class="filter-group">
+                <button class="btn-all active" onclick="filterPlots('all')">All Plots</button>
+                <button class="btn-sold" onclick="filterPlots('sold')">Sold</button>
+                <button class="btn-unsold" onclick="filterPlots('unsold')">Available</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-dot sold"></div>
+                    <span>Sold: <span id="sold-count">0</span></span>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-dot unsold"></div>
+                    <span>Available: <span id="unsold-count">0</span></span>
+                </div>
+            </div>
+
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+                <button class="zoom-btn" onclick="resetZoom()" title="Reset View">⊟</button>
+            </div>
+        </div>
+
+        <div class="map-container" id="mapContainer">
+            <svg id="mapSVG" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet">
+                <!-- Grid/Road background -->
+                <defs>
+                    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                        <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>
+                    </pattern>
+                    <filter id="shadow">
+                        <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+                    </filter>
+                </defs>
+                
+                <rect width="1000" height="800" fill="url(#grid)"/>
+                
+                <!-- Main Roads -->
+                <rect x="0" y="380" width="1000" height="40" fill="#999" opacity="0.3"/>
+                <rect x="480" y="0" width="40" height="800" fill="#999" opacity="0.3"/>
+
+                <!-- Plot Groups (modify according to your actual layout) -->
+                <!-- Row 1 -->
+                <g class="plot-group" data-row="1">
+                    <rect class="plot unsold" data-id="A1" x="50" y="50" width="80" height="80" onclick="showPlotDetails('A1')"/>
+                    <text class="plot-label" x="90" y="100">A1</text>
+                </g>
+                
+                <g class="plot-group" data-row="1">
+                    <rect class="plot unsold" data-id="A2" x="150" y="50" width="80" height="80" onclick="showPlotDetails('A2')"/>
+                    <text class="plot-label" x="190" y="100">A2</text>
+                </g>
+
+                <g class="plot-group" data-row="1">
+                    <rect class="plot sold" data-id="A3" x="250" y="50" width="80" height="80" onclick="showPlotDetails('A3')"/>
+                    <text class="plot-label" x="290" y="100">A3</text>
+                </g>
+
+                <g class="plot-group" data-row="1">
+                    <rect class="plot sold" data-id="A4" x="350" y="50" width="80" height="80" onclick="showPlotDetails('A4')"/>
+                    <text class="plot-label" x="390" y="100">A4</text>
+                </g>
+
+                <!-- Row 2 -->
+                <g class="plot-group" data-row="2">
+                    <rect class="plot unsold" data-id="B1" x="50" y="150" width="80" height="80" onclick="showPlotDetails('B1')"/>
+                    <text class="plot-label" x="90" y="200">B1</text>
+                </g>
+
+                <g class="plot-group" data-row="2">
+                    <rect class="plot sold" data-id="B2" x="150" y="150" width="80" height="80" onclick="showPlotDetails('B2')"/>
+                    <text class="plot-label" x="190" y="200">B2</text>
+                </g>
+
+                <g class="plot-group" data-row="2">
+                    <rect class="plot unsold" data-id="B3" x="250" y="150" width="80" height="80" onclick="showPlotDetails('B3')"/>
+                    <text class="plot-label" x="290" y="200">B3</text>
+                </g>
+
+                <g class="plot-group" data-row="2">
+                    <rect class="plot sold" data-id="B4" x="350" y="150" width="80" height="80" onclick="showPlotDetails('B4')"/>
+                    <text class="plot-label" x="390" y="200">B4</text>
+                </g>
+
+                <!-- Row 3 -->
+                <g class="plot-group" data-row="3">
+                    <rect class="plot unsold" data-id="C1" x="50" y="250" width="80" height="80" onclick="showPlotDetails('C1')"/>
+                    <text class="plot-label" x="90" y="300">C1</text>
+                </g>
+
+                <g class="plot-group" data-row="3">
+                    <rect class="plot unsold" data-id="C2" x="150" y="250" width="80" height="80" onclick="showPlotDetails('C2')"/>
+                    <text class="plot-label" x="190" y="300">C2</text>
+                </g>
+
+                <g class="plot-group" data-row="3">
+                    <rect class="plot sold" data-id="C3" x="250" y="250" width="80" height="80" onclick="showPlotDetails('C3')"/>
+                    <text class="plot-label" x="290" y="300">C3</text>
+                </g>
+
+                <g class="plot-group" data-row="3">
+                    <rect class="plot sold" data-id="C4" x="350" y="250" width="80" height="80" onclick="showPlotDetails('C4')"/>
+                    <text class="plot-label" x="390" y="300">C4</text>
+                </g>
+
+                <!-- Right side plots -->
+                <g class="plot-group" data-row="1">
+                    <rect class="plot sold" data-id="D1" x="550" y="50" width="80" height="80" onclick="showPlotDetails('D1')"/>
+                    <text class="plot-label" x="590" y="100">D1</text>
+                </g>
+
+                <g class="plot-group" data-row="1">
+                    <rect class="plot unsold" data-id="D2" x="650" y="50" width="80" height="80" onclick="showPlotDetails('D2')"/>
+                    <text class="plot-label" x="690" y="100">D2</text>
+                </g>
+
+                <g class="plot-group" data-row="1">
+                    <rect class="plot unsold" data-id="D3" x="750" y="50" width="80" height="80" onclick="showPlotDetails('D3')"/>
+                    <text class="plot-label" x="790" y="100">D3</text>
+                </g>
+
+                <g class="plot-group" data-row="1">
+                    <rect class="plot sold" data-id="D4" x="850" y="50" width="80" height="80" onclick="showPlotDetails('D4')"/>
+                    <text class="plot-label" x="890" y="100">D4</text>
+                </g>
+
+                <!-- Row 2 Right -->
+                <g class="plot-group" data-row="2">
+                    <rect class="plot unsold" data-id="E1" x="550" y="150" width="80" height="80" onclick="showPlotDetails('E1')"/>
+                    <text class="plot-label" x="590" y="200">E1</text>
+                </g>
+
+                <g class="plot-group" data-row="2">
+                    <rect class="plot sold" data-id="E2" x="650" y="150" width="80" height="80" onclick="showPlotDetails('E2')"/>
+                    <text class="plot-label" x="690" y="200">E2</text>
+                </g>
+
+                <g class="plot-group" data-row="2">
+                    <rect class="plot unsold" data-id="E3" x="750" y="150" width="80" height="80" onclick="showPlotDetails('E3')"/>
+                    <text class="plot-label" x="790" y="200">E3</text>
+                </g>
+
+                <g class="plot-group" data-row="2">
+                    <rect class="plot sold" data-id="E4" x="850" y="150" width="80" height="80" onclick="showPlotDetails('E4')"/>
+                    <text class="plot-label" x="890" y="200">E4</text>
+                </g>
+
+                <!-- Row 3 Right -->
+                <g class="plot-group" data-row="3">
+                    <rect class="plot sold" data-id="F1" x="550" y="250" width="80" height="80" onclick="showPlotDetails('F1')"/>
+                    <text class="plot-label" x="590" y="300">F1</text>
+                </g>
+
+                <g class="plot-group" data-row="3">
+                    <rect class="plot unsold" data-id="F2" x="650" y="250" width="80" height="80" onclick="showPlotDetails('F2')"/>
+                    <text class="plot-label" x="690" y="300">F2</text>
+                </g>
+
+                <g class="plot-group" data-row="3">
+                    <rect class="plot unsold" data-id="F3" x="750" y="250" width="80" height="80" onclick="showPlotDetails('F3')"/>
+                    <text class="plot-label" x="790" y="300">F3</text>
+                </g>
+
+                <g class="plot-group" data-row="3">
+                    <rect class="plot sold" data-id="F4" x="850" y="250" width="80" height="80" onclick="showPlotDetails('F4')"/>
+                    <text class="plot-label" x="890" y="300">F4</text>
+                </g>
+
+                <!-- Bottom section plots -->
+                <g class="plot-group" data-row="4">
+                    <rect class="plot unsold" data-id="G1" x="50" y="450" width="80" height="80" onclick="showPlotDetails('G1')"/>
+                    <text class="plot-label" x="90" y="500">G1</text>
+                </g>
+
+                <g class="plot-group" data-row="4">
+                    <rect class="plot unsold" data-id="G2" x="150" y="450" width="80" height="80" onclick="showPlotDetails('G2')"/>
+                    <text class="plot-label" x="190" y="500">G2</text>
+                </g>
+
+                <g class="plot-group" data-row="4">
+                    <rect class="plot sold" data-id="G3" x="250" y="450" width="80" height="80" onclick="showPlotDetails('G3')"/>
+                    <text class="plot-label" x="290" y="500">G3</text>
+                </g>
+
+                <g class="plot-group" data-row="4">
+                    <rect class="plot sold" data-id="G4" x="350" y="450" width="80" height="80" onclick="showPlotDetails('G4')"/>
+                    <text class="plot-label" x="390" y="500">G4</text>
+                </g>
+
+                <!-- Entrance marker -->
+                <circle cx="100" cy="700" r="20" fill="#667eea" opacity="0.5"/>
+                <text x="100" y="705" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MAIN ENTRANCE</text>
+            </svg>
+        </div>
+
+        <div class="legend">
+            <h3>Map Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-color unsold"></div>
+                    <span>Available / Unsold</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color sold"></div>
+                    <span>Sold / Booked</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for plot details -->
+    <div class="modal" id="plotModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Plot A1</h2>
+                <button class="close-btn" onclick="closePlotModal()">×</button>
+            </div>
+
+            <div class="location-info">
+                <strong>📍 Location:</strong> <span id="modalLocation">North Block - Row 1</span>
+            </div>
+
+            <div class="modal-details">
+                <div class="detail-row">
+                    <span class="detail-label">Plot ID</span>
+                    <span class="detail-value" id="modalId">A1</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Area</span>
+                    <span class="detail-value" id="modalArea">500 Sq. Ft.</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Price</span>
+                    <span class="detail-value" id="modalPrice">$50,000</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="status-badge unsold" id="modalStatus">Available</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="action-btn secondary" onclick="closePlotModal()">Close</button>
+                <button class="action-btn primary" onclick="contactAgent()">Contact Agent</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+        let currentZoom = 1;
+        const plotData = {
+            'A1': { location: 'North Block - Row 1', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
+            'A2': { location: 'North Block - Row 1', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
+            'A3': { location: 'North Block - Row 1', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
+            'A4': { location: 'North Block - Row 1', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
+            'B1': { location: 'North Block - Row 2', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
+            'B2': { location: 'North Block - Row 2', area: '500 Sq. Ft.', price: '$52,000', status: 'sold' },
+            'B3': { location: 'North Block - Row 2', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
+            'B4': { location: 'North Block - Row 2', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
+            'C1': { location: 'North Block - Row 3', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
+            'C2': { location: 'North Block - Row 3', area: '500 Sq. Ft.', price: '$50,000', status: 'unsold' },
+            'C3': { location: 'North Block - Row 3', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
+            'C4': { location: 'North Block - Row 3', area: '500 Sq. Ft.', price: '$55,000', status: 'sold' },
+            'D1': { location: 'South Block - Row 1', area: '550 Sq. Ft.', price: '$56,000', status: 'sold' },
+            'D2': { location: 'South Block - Row 1', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
+            'D3': { location: 'South Block - Row 1', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
+            'D4': { location: 'South Block - Row 1', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
+            'E1': { location: 'South Block - Row 2', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
+            'E2': { location: 'South Block - Row 2', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
+            'E3': { location: 'South Block - Row 2', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
+            'E4': { location: 'South Block - Row 2', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
+            'F1': { location: 'South Block - Row 3', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
+            'F2': { location: 'South Block - Row 3', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
+            'F3': { location: 'South Block - Row 3', area: '550 Sq. Ft.', price: '$56,000', status: 'unsold' },
+            'F4': { location: 'South Block - Row 3', area: '550 Sq. Ft.', price: '$58,000', status: 'sold' },
+            'G1': { location: 'Premium Block - Row 1', area: '600 Sq. Ft.', price: '$65,000', status: 'unsold' },
+            'G2': { location: 'Premium Block - Row 1', area: '600 Sq. Ft.', price: '$65,000', status: 'unsold' },
+            'G3': { location: 'Premium Block - Row 1', area: '600 Sq. Ft.', price: '$68,000', status: 'sold' },
+            'G4': { location: 'Premium Block - Row 1', area: '600 Sq. Ft.', price: '$68,000', status: 'sold' }
+        };
+
+        function updateStats() {
+            const sold = Object.keys(plotData).filter(id => plotData[id].status === 'sold').length;
+            const unsold = Object.keys(plotData).filter(id => plotData[id].status === 'unsold').length;
+            document.getElementById('sold-count').textContent = sold;
+            document.getElementById('unsold-count').textContent = unsold;
+        }
+
+        function filterPlots(filter) {
+            currentFilter = filter;
+            const plots = document.querySelectorAll('.plot');
+            const buttons = document.querySelectorAll('.filter-group button');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            plots.forEach(plot => {
+                plot.classList.remove('hidden');
+                if (filter !== 'all') {
+                    if (plot.classList.contains(filter) === false) {
+                        plot.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        function showPlotDetails(plotId) {
+            const data = plotData[plotId];
+            if (!data) return;
+
+            document.getElementById('modalTitle').textContent = `Plot ${plotId}`;
+            document.getElementById('modalId').textContent = plotId;
+            document.getElementById('modalLocation').textContent = data.location;
+            document.getElementById('modalArea').textContent = data.area;
+            document.getElementById('modalPrice').textContent = data.price;
+
+            const statusBadge = document.getElementById('modalStatus');
+            statusBadge.textContent = data.status === 'sold' ? 'SOLD' : 'AVAILABLE';
+            statusBadge.className = `status-badge ${data.status}`;
+
+            document.getElementById('plotModal').classList.add('active');
+        }
+
+        function closePlotModal() {
+            document.getElementById('plotModal').classList.remove('active');
+        }
+
+        function contactAgent() {
+            const plotId = document.getElementById('modalId').textContent;
+            alert(`Contacting agent for Plot ${plotId}...\n\nEmail: agent@landcompany.com\nPhone: +1-800-LAND-123`);
+        }
+
+        function zoomIn() {
+            currentZoom += 0.1;
+            const svg = document.getElementById('mapSVG');
+            svg.style.transform = `scale(${currentZoom})`;
+            svg.style.transformOrigin = 'center top';
+        }
+
+        function zoomOut() {
+            if (currentZoom > 0.5) {
+                currentZoom -= 0.1;
+                const svg = document.getElementById('mapSVG');
+                svg.style.transform = `scale(${currentZoom})`;
+                svg.style.transformOrigin = 'center top';
+            }
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            document.getElementById('mapSVG').style.transform = 'scale(1)';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('plotModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePlotModal();
+            }
+        });
+
+        // Initialize stats
+        updateStats();
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === '+') zoomIn();
+            if (e.key === '-') zoomOut();
+            if (e.key === '0') resetZoom();
+            if (e.key === 'Escape') closePlotModal();
+        });
+    </script>
+</body>
+</html>
