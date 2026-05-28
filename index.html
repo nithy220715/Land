@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Layout Plot Status</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+body{
+    background:#f4f4f4;
+    padding:20px;
+}
+.container{
+    max-width:1400px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+.toolbar{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
+button{
+    padding:10px 18px;
+    border:none;
+    border-radius:6px;
+    background:#222;
+    color:white;
+    cursor:pointer;
+}
+button:hover{
+    background:#444;
+}
+.legend{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.color-box{
+    width:20px;
+    height:20px;
+    border-radius:4px;
+    border:1px solid #000;
+}
+.green{
+    background:#43d843;
+}
+.red{
+    background:#ff4b4b;
+}
+.map-container{
+    position:relative;
+    width:100%;
+    overflow:auto;
+    border:2px solid #ddd;
+    border-radius:10px;
+}
+.map-image{
+    width:100%;
+    display:block;
+}
+.plot{
+    position:absolute;
+    border:2px solid #000;
+    cursor:pointer;
+    opacity:0.45;
+    transition:0.2s;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    color:#000;
+    user-select:none;
+}
+.plot:hover{
+    opacity:0.8;
+    transform:scale(1.02);
+}
+.plot.unsold{
+    background:rgba(0,255,0,0.45);
+}
+.plot.sold{
+    background:rgba(255,0,0,0.5);
+}
+.info{
+    margin-top:15px;
+    text-align:center;
+    font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Layout Plot Status</h1>
+
+    <div class="toolbar">
+
+        <div class="legend">
+            <div class="color-box green"></div>
+            <span>Unsold</span>
+        </div>
+
+        <div class="legend">
+            <div class="color-box red"></div>
+            <span>Sold</span>
+        </div>
+
+        <button onclick="markAllUnsold()">All Unsold</button>
+        <button onclick="markAllSold()">All Sold</button>
+
+    </div>
+
+    <div class="map-container" id="mapContainer">
+        <img src="layout-map.jpg" class="map-image"/>
+    </div>
+
+    <div class="info">
+        Sold: <span id="soldCount">0</span> |
+        Unsold: <span id="unsoldCount">0</span>
+    </div>
+
+</div>
+
+<script>
+
+const plots = [
+{ no:1, x:55, y:105, w:90, h:150 },
+{ no:2, x:145, y:105, w:90, h:150 },
+{ no:3, x:235, y:105, w:90, h:150 },
+{ no:4, x:325, y:105, w:90, h:150 },
+{ no:5, x:450, y:105, w:90, h:150 },
+{ no:6, x:540, y:105, w:90, h:150 },
+{ no:7, x:630, y:105, w:90, h:150 },
+{ no:8, x:720, y:105, w:90, h:150 },
+{ no:9, x:55, y:260, w:90, h:130 },
+{ no:10, x:145, y:260, w:90, h:130 },
+{ no:11, x:235, y:260, w:90, h:130 },
+{ no:12, x:325, y:260, w:90, h:130 },
+{ no:13, x:55, y:410, w:90, h:130 },
+{ no:14, x:145, y:410, w:90, h:130 },
+{ no:15, x:235, y:410, w:90, h:130 },
+{ no:16, x:325, y:410, w:90, h:130 },
+{ no:17, x:450, y:260, w:90, h:130 },
+{ no:18, x:540, y:260, w:90, h:130 },
+{ no:19, x:630, y:260, w:90, h:130 },
+{ no:20, x:720, y:260, w:90, h:130 },
+{ no:21, x:450, y:410, w:90, h:130 },
+{ no:22, x:540, y:410, w:90, h:130 },
+{ no:23, x:630, y:410, w:90, h:130 },
+{ no:24, x:720, y:410, w:90, h:130 }
+];
+
+const container = document.getElementById("mapContainer");
+
+plots.forEach(plot => {
+
+    const div = document.createElement("div");
+
+    div.className = "plot unsold";
+
+    div.style.left = plot.x + "px";
+    div.style.top = plot.y + "px";
+    div.style.width = plot.w + "px";
+    div.style.height = plot.h + "px";
+
+    div.innerText = plot.no;
+
+    div.dataset.status = "unsold";
+
+    div.onclick = () => togglePlot(div);
+
+    container.appendChild(div);
+
+});
+
+function togglePlot(plot){
+
+    if(plot.dataset.status === "unsold"){
+
+        plot.dataset.status = "sold";
+
+        plot.classList.remove("unsold");
+        plot.classList.add("sold");
+
+    }else{
+
+        plot.dataset.status = "unsold";
+
+        plot.classList.remove("sold");
+        plot.classList.add("unsold");
+
+    }
+
+    updateCount();
+}
+
+function updateCount(){
+
+    const sold = document.querySelectorAll(".plot.sold").length;
+    const unsold = document.querySelectorAll(".plot.unsold").length;
+
+    document.getElementById("soldCount").innerText = sold;
+    document.getElementById("unsoldCount").innerText = unsold;
+}
+
+function markAllSold(){
+
+    document.querySelectorAll(".plot").forEach(plot => {
+
+        plot.dataset.status = "sold";
+
+        plot.classList.remove("unsold");
+        plot.classList.add("sold");
+
+    });
+
+    updateCount();
+}
+
+function markAllUnsold(){
+
+    document.querySelectorAll(".plot").forEach(plot => {
+
+        plot.dataset.status = "unsold";
+
+        plot.classList.remove("sold");
+        plot.classList.add("unsold");
+
+    });
+
+    updateCount();
+}
+
+updateCount();
+
+</script>
+
+</body>
+</html>
