@@ -15,7 +15,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
 
         .container {
@@ -27,46 +27,55 @@
             text-align: center;
             color: white;
             margin-bottom: 20px;
+            padding: 15px 10px;
         }
 
         .header h1 {
             font-size: 2em;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            word-wrap: break-word;
         }
 
         .header p {
             font-size: 1em;
-            opacity: 0.9;
+            opacity: 0.95;
+            line-height: 1.4;
         }
 
         .controls {
             background: white;
             border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 12px;
+            margin-bottom: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .controls-row {
+            display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
             justify-content: space-between;
         }
 
         .filter-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         button {
-            padding: 10px 18px;
+            padding: 10px 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         button.active {
@@ -103,25 +112,30 @@
 
         .zoom-controls {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .zoom-btn {
             background: #667eea;
             color: white;
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 16px;
+        }
+
+        .zoom-btn:hover {
+            background: #5568d3;
         }
 
         .stats {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             flex-wrap: wrap;
+            width: 100%;
         }
 
         .stat-item {
@@ -130,12 +144,21 @@
             gap: 8px;
             font-weight: 600;
             color: #333;
+            font-size: 13px;
         }
 
         .stat-dot {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 3px;
+        }
+
+        .stat-dot.sold {
+            background: #ff6b6b;
+        }
+
+        .stat-dot.unsold {
+            background: #51cf66;
         }
 
         .map-wrapper {
@@ -144,7 +167,9 @@
             overflow: auto;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             position: relative;
-            height: 700px;
+            height: 500px;
+            margin-bottom: 15px;
+            scroll-behavior: smooth;
         }
 
         #mapContainer {
@@ -213,25 +238,47 @@
         /* Compass */
         .compass {
             position: absolute;
-            bottom: 40px;
-            right: 40px;
-            width: 80px;
-            height: 80px;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
             background: white;
             border-radius: 50%;
-            border: 2px solid #333;
+            border: 3px solid #333;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-size: 16px;
+            z-index: 50;
         }
 
-        .compass-n { position: absolute; top: 8px; color: #ff6b6b; }
-        .compass-s { position: absolute; bottom: 8px; color: #51cf66; }
-        .compass-e { position: absolute; right: 8px; }
-        .compass-w { position: absolute; left: 8px; }
+        .compass-n { 
+            position: absolute; 
+            top: 6px; 
+            color: #ff6b6b;
+            font-weight: 900;
+        }
+
+        .compass-s { 
+            position: absolute; 
+            bottom: 6px; 
+            color: #51cf66;
+            font-weight: 700;
+        }
+
+        .compass-e { 
+            position: absolute; 
+            right: 8px;
+            font-weight: 700;
+        }
+
+        .compass-w { 
+            position: absolute; 
+            left: 8px;
+            font-weight: 700;
+        }
 
         /* Modal */
         .modal {
@@ -245,7 +292,9 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: 20px;
             animation: fadeIn 0.3s ease;
+            overflow-y: auto;
         }
 
         .modal.active {
@@ -259,10 +308,10 @@
 
         .modal-content {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 12px;
             max-width: 500px;
-            width: 90%;
+            width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: slideUp 0.3s ease;
         }
@@ -288,7 +337,7 @@
         }
 
         .modal-header h2 {
-            font-size: 1.8em;
+            font-size: 1.6em;
             color: #333;
         }
 
@@ -316,9 +365,10 @@
         .detail-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px;
+            padding: 12px;
             background: #f8f9ff;
             border-radius: 6px;
+            font-size: 14px;
         }
 
         .detail-label {
@@ -333,12 +383,13 @@
 
         .status-badge {
             display: inline-block;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 20px;
             font-weight: 600;
             color: white;
             text-align: center;
             margin-top: 10px;
+            font-size: 14px;
         }
 
         .status-badge.sold {
@@ -362,6 +413,7 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
+            font-size: 14px;
         }
 
         .action-btn.primary {
@@ -386,18 +438,19 @@
             background: white;
             border-radius: 12px;
             padding: 15px;
-            margin-top: 20px;
+            margin-bottom: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .legend h3 {
             margin-bottom: 12px;
             color: #333;
+            font-size: 16px;
         }
 
         .legend-items {
             display: flex;
-            gap: 30px;
+            gap: 20px;
             flex-wrap: wrap;
         }
 
@@ -405,6 +458,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 14px;
         }
 
         .legend-color {
@@ -412,6 +466,7 @@
             height: 24px;
             border-radius: 3px;
             border: 2px solid #333;
+            flex-shrink: 0;
         }
 
         .legend-color.sold {
@@ -426,29 +481,263 @@
             background: white;
             border-radius: 12px;
             padding: 15px;
-            margin-top: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             color: #333;
         }
 
         .project-info p {
-            margin: 5px 0;
+            margin: 8px 0;
             font-size: 14px;
+            line-height: 1.6;
         }
 
-        @media (max-width: 768px) {
+        .project-info strong {
+            color: #667eea;
+        }
+
+        /* Tablet and Desktop Adjustments */
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 20px 10px;
+            }
+
             .header h1 {
-                font-size: 1.5em;
+                font-size: 2.5em;
             }
+
             .controls {
-                flex-direction: column;
-                align-items: flex-start;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                padding: 15px;
             }
+
+            .controls-row {
+                justify-content: flex-start;
+            }
+
+            .filter-group {
+                gap: 10px;
+            }
+
+            button {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+
+            .stats {
+                width: auto;
+                gap: 20px;
+            }
+
             .map-wrapper {
-                height: 500px;
+                height: 700px;
+                margin-bottom: 20px;
             }
+
+            .modal-content {
+                padding: 30px;
+            }
+
+            .legend {
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Mobile First - Small Screens */
+        @media (max-width: 767px) {
+            .header h1 {
+                font-size: 1.4em;
+            }
+
+            .header p {
+                font-size: 0.9em;
+            }
+
+            .controls {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .filter-group {
+                width: 100%;
+                gap: 6px;
+            }
+
+            .filter-group button {
+                flex: 1;
+                padding: 8px 12px;
+                font-size: 12px;
+                min-width: 70px;
+            }
+
+            .stats {
+                width: 100%;
+                gap: 10px;
+                padding: 10px 0;
+                border-top: 1px solid #eee;
+            }
+
+            .stat-item {
+                font-size: 12px;
+                flex: 1;
+            }
+
+            .zoom-controls {
+                width: 100%;
+                gap: 5px;
+                justify-content: flex-end;
+            }
+
+            .zoom-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .map-wrapper {
+                height: 400px;
+                border-radius: 8px;
+            }
+
             #mapContainer {
                 width: 100%;
+                height: 100%;
+            }
+
+            .compass {
+                width: 60px;
+                height: 60px;
+                bottom: 15px;
+                right: 15px;
+                border-width: 2px;
+                font-size: 14px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                margin: auto 10px;
+            }
+
+            .modal-header h2 {
+                font-size: 1.3em;
+            }
+
+            .detail-row {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .modal-actions {
+                flex-direction: column-reverse;
+            }
+
+            .action-btn {
+                width: 100%;
+                padding: 12px 16px;
+            }
+
+            .legend {
+                padding: 12px;
+            }
+
+            .legend h3 {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+
+            .legend-items {
+                gap: 15px;
+            }
+
+            .legend-item {
+                font-size: 13px;
+            }
+
+            .project-info {
+                padding: 12px;
+            }
+
+            .project-info p {
+                font-size: 13px;
+                margin: 6px 0;
+            }
+
+            .plot-number {
+                font-size: 14px;
+            }
+
+            .plot-area {
+                font-size: 9px;
+            }
+        }
+
+        /* Extra Small Screens */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.2em;
+                margin-bottom: 5px;
+            }
+
+            .header p {
+                font-size: 0.85em;
+            }
+
+            .controls {
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .filter-group button {
+                padding: 7px 10px;
+                font-size: 11px;
+                min-width: 60px;
+            }
+
+            .stat-item {
+                font-size: 11px;
+            }
+
+            .zoom-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+            .map-wrapper {
+                height: 350px;
+            }
+
+            .compass {
+                width: 55px;
+                height: 55px;
+                bottom: 12px;
+                right: 12px;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .controls,
+            .zoom-controls {
+                display: none;
+            }
+
+            .map-wrapper {
+                height: auto;
+                box-shadow: none;
+            }
+
+            .modal {
+                display: none;
             }
         }
     </style>
@@ -457,31 +746,33 @@
     <div class="container">
         <div class="header">
             <h1>🏘️ Senthilvel Nagar</h1>
-            <p>Existing Sathy - Athani Road | Interactive Land Plot Map</p>
+            <p>Sathy - Athani Road, Bangalore | Interactive Land Plot Map</p>
         </div>
 
         <div class="controls">
-            <div class="filter-group">
-                <button class="btn-all active" onclick="filterPlots('all')">All Plots</button>
-                <button class="btn-sold" onclick="filterPlots('sold')">Sold</button>
-                <button class="btn-unsold" onclick="filterPlots('unsold')">Available</button>
+            <div class="controls-row">
+                <div class="filter-group">
+                    <button class="btn-all active" onclick="filterPlots('all')">All Plots</button>
+                    <button class="btn-sold" onclick="filterPlots('sold')">Sold</button>
+                    <button class="btn-unsold" onclick="filterPlots('unsold')">Available</button>
+                </div>
+
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
+                    <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+                    <button class="zoom-btn" onclick="resetZoom()" title="Reset">⊟</button>
+                </div>
             </div>
 
             <div class="stats">
                 <div class="stat-item">
                     <div class="stat-dot sold"></div>
-                    <span>Sold: <span id="sold-count">0</span></span>
+                    <span>Sold: <strong id="sold-count">0</strong></span>
                 </div>
                 <div class="stat-item">
                     <div class="stat-dot unsold"></div>
-                    <span>Available: <span id="unsold-count">0</span></span>
+                    <span>Available: <strong id="unsold-count">0</strong></span>
                 </div>
-            </div>
-
-            <div class="zoom-controls">
-                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
-                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
-                <button class="zoom-btn" onclick="resetZoom()" title="Reset">⊟</button>
             </div>
         </div>
 
@@ -498,7 +789,7 @@
         </div>
 
         <div class="legend">
-            <h3>Map Legend</h3>
+            <h3>📍 Map Legend</h3>
             <div class="legend-items">
                 <div class="legend-item">
                     <div class="legend-color unsold"></div>
@@ -512,7 +803,7 @@
         </div>
 
         <div class="project-info">
-            <p><strong>📍 Project Name:</strong> Senthilvel Nagar</p>
+            <p><strong>🏗️ Project:</strong> Senthilvel Nagar</p>
             <p><strong>📍 Location:</strong> Sathy - Athani Road, Bangalore</p>
             <p><strong>📊 Total Plots:</strong> 33</p>
             <p><strong>☎️ Contact:</strong> 98652 94653 | 98429 24423</p>
